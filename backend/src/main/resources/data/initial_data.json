@@ -214,5 +214,83 @@
         "id": "60d5ec9af682fbd39a1b8b9d"
       }
     }
-  ]
+  ],
+  "houseRatings":[
+    {
+    "houseAdvertisement": {
+      "id": "60d5ec9af682fbd39a1b8b1a",
+      "title": "Casa 1",
+      "description": "Descripción para casa 1",
+      "price": 1000,
+      "house": {"id": "60d5ec9af682fbd39a1b8b9f"},
+      "author": {
+        "id": "60d5ec9af682fbd39a1b8b9e"
+      },
+      "tenants": [{"id": "60d5ec9af682fbd39a1b8b9e"}],
+      "images":["https://www.caralca.es/wp-content/uploads/2021/02/pisos-en-venta-en-Huelva.jpg",
+      "https://www.texturasymatices.com/wp-content/uploads/2017/07/piso-de-madera-roble-markant-haro-1080x675.jpg",
+      "https://elcomercio.pe/resizer/6nPMfg6MC9Airtessy0LtxsEE5o=/620x0/smart/filters:format(jpeg):quality(75)/cloudfront-us-east-1.images.arcpublishing.com/elcomercio/4A2ESLPEQ5C5VP6FBQDLFFVIUE.jpg"]
+    },
+    "user": {
+      "id": "60d5ec9af682fbd39a1b8b9d",
+      "username": "admin",
+      "password": "$2a$10$S/9Tn47FJ68fR7.tCKLqhelXOQbZbXmBOnzQqKqC97TPUHeIhOoim",
+      "isOwner": true,
+      "phone": "123456789",
+      "email": "usuario1@example.com",
+      "tag": [
+        {
+          "id": "60d5ec9af682fbd39a1b8b9b"
+        }],
+      "description": "Me encantan las charlas nocturnas. Me gusta mantener el hogar limpio y ordenado.",
+      "plan": "Basic",
+      "isVerified": true,
+      "authorities": ["Admin"],
+      "gender": "MASCULINO",
+      "imageUri": "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?cs=srgb&dl=pexels-justin-shaifer-1222271.jpg&fm=jpg"
+    },
+    "rating": 3,
+    "date": "2024-03-25",
+    "comment": "Es muy luminoso y está bien cuidado"
+  },
+  {
+  "houseAdvertisement": {
+    "id": "60d5ec9af682fbd39a1b8b2a",
+    "title": "Casa 2",
+    "description": "Descripción para casa 2",
+    "price": 900,
+    "house": {"id": "60d5ec9af682fbd39a1b8b8f"},
+    "author": {
+      "id": "60d5ec9af682fbd39a1b8b9d"
+    },
+    "tenants": [{"id": "60d5ec9af682fbd39a1b8b9e"}],
+    "images": ["https://www.caralca.es/wp-content/uploads/2021/02/pisos-en-venta-en-Huelva.jpg",
+    "https://www.texturasymatices.com/wp-content/uploads/2017/07/piso-de-madera-roble-markant-haro-1080x675.jpg",
+    "https://elcomercio.pe/resizer/6nPMfg6MC9Airtessy0LtxsEE5o=/620x0/smart/filters:format(jpeg):quality(75)/cloudfront-us-east-1.images.arcpublishing.com/elcomercio/4A2ESLPEQ5C5VP6FBQDLFFVIUE.jpg"]
+  },
+  "user":{
+    "id": "60d5ec9af682fbd39a1b8b9e",
+    "username": "usuario 2",
+    "password": "$2a$10$PcN/V6liOTDpfQqjh0s6weo7vi8BGKXqYjtIYzp/m9ciP60CyCsQa",
+    "isOwner": false,
+    "phone": "987654321",
+    "email": "usuario2@example.com",
+    "tag": [
+      {
+        "id": "60d5ec9af682fbd39a1b8b9a"
+      }, {
+        "id": "60d5ec9af682fbd39a1b8b9b"
+      }],
+    "description": "Me encanta salir de fiesta y divertirme",
+    "plan": "Explorer",
+    "isVerified": false,
+    "authorities": ["User"],
+    "gender": "OTRO",
+    "imageUri": "https://hips.hearstapps.com/hmg-prod/images/demi-lovaro-ge-nero-no-binario-1-1622484860.jpg?crop=0.669xw:1.00xh;0.166xw,0&resize=1200:*"
+  },
+  "rating": 1,
+  "date": "2024-02-25",
+  "comment": "Es un piso muy sucio y con mala ventilación"
+
+  }]
 }

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue";
-import { useRoute, useRouter } from 'vue-router';
-import { useStore } from 'vuex';
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
 
 const route = useRoute();
 const router = useRouter();
@@ -16,6 +16,11 @@ const isLoading = ref(true);
 const errorComentario = ref(null);
 const fetchError = ref(null);
 const text = ref("");
+const currentUserHouseAdvertisementRating = ref(null);
+const rating = ref(0);
+function setRating(value) {
+  rating.value = value;
+}
 
 const truncateDescription = (description) => {
   const words = description.split(" ");
@@ -91,10 +96,8 @@ const deleteComment1 = () => {
 const deleteComment2 = () => {
   fetch(
     import.meta.env.VITE_BACKEND_URL +
-      "/api/userRating/ratedUser/" +
-      currentUser.value.id +
-      "/" +
-      houseAdvertisement.value.author.id,
+      "/api/houseRating/" +
+      currentUserHouseAdvertisementRating.value.id,
     {
       method: "DELETE",
       headers: {
@@ -118,28 +121,18 @@ const deleteComment2 = () => {
     );
 };
 
-const register = () => {
-  const formData = new FormData();
-  console.log(currentUser.value);
-  formData.append(
-    "string-data",
-    new Blob(
-      [
-        JSON.stringify({
-          user: houseAdvertisement.value.author,
-          ratedUser: currentUser.value,
-          comment: text.value,
-        }),
-      ],
-      { type: "application/json" }
-    )
-  );
-  fetch(import.meta.env.VITE_BACKEND_URL + "/api/userRating", {
+const createHouseAdvertisementRating = () => {
+  fetch(import.meta.env.VITE_BACKEND_URL + "/api/houseRating", {
     method: "POST",
     headers: {
       Authentication: "Bearer " + localStorage.getItem("authentication"),
+      "Content-Type": "application/json",
     },
-    body: formData,
+    body: JSON.stringify({
+      houseAdvertisement: houseAdvertisement.value,
+      comment: text.value,
+      rating: rating.value,
+    }),
   })
     .then((response) => response.json())
     .then((jsonData) => {
@@ -158,71 +151,81 @@ const fetchValorations = async () => {
   try {
     const response = await fetch(
       import.meta.env.VITE_BACKEND_URL +
-        "/api/userRating/user/" +
-        houseAdvertisement.value.author.id,
+        `/api/houseRating/houseAdvertisements/${houseAdvertisement.value.id}`,
       {
         method: "GET",
-        headers: {
-          Authentication: "Bearer " + localStorage.getItem("authentication"),
-        },
         credentials: "include",
       }
     );
     const data = await response.json();
     valorations.value = data;
+    for(const rating of valorations.value){
+      if(rating.user.username === currentUser.value.username){
+        currentUserHouseAdvertisementRating.value = rating;
+        break;
+      }
+    }
   } catch (error) {
     console.error("Error:", error);
   }
 };
 
 const toggleLike = async () => {
-    
-    try {
-        const response = await fetch(import.meta.env.VITE_BACKEND_URL + `/api/houses/like/${houseAdvertisement.value.house.id}/${currentUser.value.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authentication': 'Bearer ' + localStorage.getItem("authentication"),
-            },
-        });
+  try {
+    const response = await fetch(
+      import.meta.env.VITE_BACKEND_URL +
+        `/api/houses/like/${houseAdvertisement.value.house.id}/${currentUser.value.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authentication: "Bearer " + localStorage.getItem("authentication"),
+        },
+      }
+    );
 
-        if (response.ok) {
-            if (houseAdvertisement.value.house.likes.some((like) => like.id === currentUser.value.id)) {
-                houseAdvertisement.value.house.likes = houseAdvertisement.value.house.likes.filter((like) => like.id !== currentUser.value.id);
-            } else {
-                houseAdvertisement.value.house.likes.push(currentUser.value);
-            }
-        }
-
-    } catch (error) {
-        console.error("Error:", error);
+    if (response.ok) {
+      if (
+        houseAdvertisement.value.house.likes.some(
+          (like) => like.id === currentUser.value.id
+        )
+      ) {
+        houseAdvertisement.value.house.likes =
+          houseAdvertisement.value.house.likes.filter(
+            (like) => like.id !== currentUser.value.id
+          );
+      } else {
+        houseAdvertisement.value.house.likes.push(currentUser.value);
+      }
     }
+  } catch (error) {
+    console.error("Error:", error);
+  }
 };
 
 const deleteHouseAd = (id) => {
-    
-    fetch(import.meta.env.VITE_BACKEND_URL+'/api/advertisements/houses/' + id, {
-        method: "DELETE",
-        headers: {
-            'Authentication': 'Bearer ' + localStorage.getItem("authentication"),
-        },
-        credentials: "include"
+  fetch(import.meta.env.VITE_BACKEND_URL + "/api/advertisements/houses/" + id, {
+    method: "DELETE",
+    headers: {
+      Authentication: "Bearer " + localStorage.getItem("authentication"),
+    },
+    credentials: "include",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("No se ha podido eliminar el anuncio de vivienda");
+      }
     })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('No se ha podido eliminar el anuncio de vivienda')
-            }
-        })
-        .then(data => {
-            router.push(`/advertisements/houses`);
-        })
-        .catch(error => {
-            fetchError.value = error
-        })
-}
+    .then((data) => {
+      router.push(`/advertisements/houses`);
+    })
+    .catch((error) => {
+      fetchError.value = error;
+    });
+};
 
 const fetchHouseAdvertisement = () => {
-    fetch(import.meta.env.VITE_BACKEND_URL + "/api/advertisements/houses/" + id, {
+  fetch(import.meta.env.VITE_BACKEND_URL + "/api/advertisements/houses/" + id, {
     method: "GET",
     headers: {
       Authentication: "Bearer " + localStorage.getItem("authentication"),
@@ -257,15 +260,14 @@ const fetchHouseAdvertisement = () => {
       isLoading.value = false;
       fetchError.value = error.message;
     });
-}
+};
 
 onMounted(() => {
-    fetchHouseAdvertisement();
+  fetchHouseAdvertisement();
 });
 </script>
 
 <template>
-
   <Navbar />
 
   <link
@@ -297,7 +299,18 @@ onMounted(() => {
             </div>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="register">
+            <form @submit.prevent="createHouseAdvertisementRating">
+              <div>
+                <div class="stars-input">
+                  <span
+                    v-for="star in 5"
+                    :key="star"
+                    @click="setRating(star)"
+                    :class="{ active: star <= rating }"
+                    >★</span
+                  >
+                </div>
+              </div>
               <div class="form-group">
                 <label for="commentText">Comentario</label>
                 <div
@@ -403,7 +416,13 @@ onMounted(() => {
         </div>
 
         <div class="col px-6" style="padding-left: 5%; padding-right: 5%">
-          <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
             <h1 style="text-align: left">{{ houseAdvertisement.title }}</h1>
             <button class="btn btn-share" @click="copyToClipboard()">
               <i class="bi bi-share-fill"></i>
@@ -548,8 +567,20 @@ onMounted(() => {
                             v-if="tenant.gender == 'OTRO'"
                           ></i>
                         </div>
-                            <p v-if="houseAdvertisement.description === ''" style="text-align: justify; word-wrap: break-word" class="card-text">Esta vivienda tiene establecida descripción</p>
-                            <p v-else style="text-align: justify; word-wrap: break-word" class="card-text">{{ truncateDescription(tenant.description) }}</p>
+                        <p
+                          v-if="houseAdvertisement.description === ''"
+                          style="text-align: justify; word-wrap: break-word"
+                          class="card-text"
+                        >
+                          Esta vivienda tiene establecida descripción
+                        </p>
+                        <p
+                          v-else
+                          style="text-align: justify; word-wrap: break-word"
+                          class="card-text"
+                        >
+                          {{ truncateDescription(tenant.description) }}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -582,43 +613,145 @@ onMounted(() => {
             <div class="card-body">
               <h4 style="text-align: left" class="card-title">Descripción</h4>
               <hr />
-                <p v-if="houseAdvertisement.description === ''" style="text-align: justify; word-wrap: break-word" class="card-text">Este usuario no ha establecido una descripción</p>
-                <p v-else style="text-align: justify; word-wrap: break-word" class="card-text"> {{ houseAdvertisement.description }}</p>               
+              <p
+                v-if="houseAdvertisement.description === ''"
+                style="text-align: justify; word-wrap: break-word"
+                class="card-text"
+              >
+                Este usuario no ha establecido una descripción
+              </p>
+              <p
+                v-else
+                style="text-align: justify; word-wrap: break-word"
+                class="card-text"
+              >
+                {{ houseAdvertisement.description }}
+              </p>
             </div>
           </div>
 
           <div class="d-flex justify-content-center">
             <div class="d-flex justify-content-center align-items-center">
-                    <div class="likes" style="margin-right: 1vw;">
-                        <div @click="toggleLike" style="cursor: pointer">
-                            <i v-if="houseAdvertisement.house?.likes.some((like) => like.id === currentUser.id)" class="bi bi-heart-fill" style="margin-top:2px; margin-right: 5px; color:#e87878" ></i>
-                            <i v-else class="bi bi-heart" style="margin-top:2px; margin-right: 5px; color:#28426B"></i>
-                        </div>
-                                 
-                        <span style="font-weight: bold; font-size: large; color:#28426B"> {{ houseAdvertisement.house?.likes.length }} </span>
-                    </div>
-                            
-                    <button v-if="currentUser.id !== houseAdvertisement.author?.id" type="button" class="button boton" style="text-wrap: nowrap; width:100%; margin-left: 1vw;"><strong style="color:white">Iniciar chat <i class="bi bi-chat" style="margin-left: 5px;"></i></strong></button>
-                    <div class="d-flex col" v-else>
-                        <button type="button" class="btn btn-success" @click="$router.push(`/advertisements/houses/edit/${houseAdvertisement.id}`)" style="display: flex; align-items: center; justify-content: center; width: 100%; margin-left: 1vw;"><strong>Editar</strong><span class="material-symbols-outlined" style="margin-left: 0.5rem;">edit</span></button>
-                        <button type="button" class="btn btn-danger"  @click="deleteHouseAd(houseAdvertisement.id)" style="display: flex; align-items: center; justify-content: center; width: 100%; margin-left: 1vw;"><strong>Eliminar</strong><span class="material-symbols-outlined" style="margin-left: 0.5rem;">delete</span></button>
-                    </div>
+              <div class="likes" style="margin-right: 1vw">
+                <div @click="toggleLike" style="cursor: pointer">
+                  <i
+                    v-if="
+                      houseAdvertisement.house?.likes.some(
+                        (like) => like.id === currentUser.id
+                      )
+                    "
+                    class="bi bi-heart-fill"
+                    style="margin-top: 2px; margin-right: 5px; color: #e87878"
+                  ></i>
+                  <i
+                    v-else
+                    class="bi bi-heart"
+                    style="margin-top: 2px; margin-right: 5px; color: #28426b"
+                  ></i>
                 </div>
+
+                <span
+                  style="font-weight: bold; font-size: large; color: #28426b"
+                >
+                  {{ houseAdvertisement.house?.likes.length }}
+                </span>
+              </div>
+
+              <button
+                v-if="currentUser.id !== houseAdvertisement.author?.id"
+                type="button"
+                class="button boton"
+                style="text-wrap: nowrap; width: 100%; margin-left: 1vw"
+              >
+                <strong style="color: white"
+                  >Iniciar chat
+                  <i class="bi bi-chat" style="margin-left: 5px"></i
+                ></strong>
+              </button>
+              <div class="d-flex col" v-else>
+                <button
+                  type="button"
+                  class="btn btn-success"
+                  @click="
+                    $router.push(
+                      `/advertisements/houses/edit/${houseAdvertisement.id}`
+                    )
+                  "
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    margin-left: 1vw;
+                  "
+                >
+                  <strong>Editar</strong
+                  ><span
+                    class="material-symbols-outlined"
+                    style="margin-left: 0.5rem"
+                    >edit</span
+                  >
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  @click="deleteHouseAd(houseAdvertisement.id)"
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    margin-left: 1vw;
+                  "
+                >
+                  <strong>Eliminar</strong
+                  ><span
+                    class="material-symbols-outlined"
+                    style="margin-left: 0.5rem"
+                    >delete</span
+                  >
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div style="margin-top: 5%;"> 
-                <div class="d-flex justify-content-between">
-                    <h4 style=" text-align: left;">Comentarios</h4>
-                        <i class="fas fa-trash-alt" @click="deleteComment2" 
-                            style="cursor: pointer; width: 38px; height: 38px; border: 0.2em solid black; border-radius: 50%; padding: 0.5em; background-color: #f2f2f2;" v-if="houseAdvertisement.author?.username !== currentUser.username">
-                        </i>
-                    <button type="button" @click="openModal" class="button boton" style="padding: 1vh;" v-if="houseAdvertisement.author?.username !== currentUser.username"><strong style="color:white">Comentar</strong></button>
-                </div>
-                <hr>
+          <div style="margin-top: 5%">
+            <div class="d-flex justify-content-between">
+              <h4 style="text-align: left">Comentarios</h4>
+              <i
+                class="fas fa-trash-alt"
+                @click="deleteComment2"
+                style="
+                  cursor: pointer;
+                  width: 38px;
+                  height: 38px;
+                  border: 0.2em solid black;
+                  border-radius: 50%;
+                  padding: 0.5em;
+                  background-color: #f2f2f2;
+                "
+                v-if="
+                  houseAdvertisement.author?.username !== currentUser.username && currentUserHouseAdvertisementRating !== null
+                "
+              >
+              </i>
+              <button
+                type="button"
+                @click="openModal"
+                class="button boton"
+                style="padding: 1vh"
+                v-if="
+                  houseAdvertisement.author?.username !== currentUser.username && currentUserHouseAdvertisementRating === null
+                "
+              >
+                <strong style="color: white">Comentar</strong>
+              </button>
+            </div>
+            <hr />
             <div v-if="valorations.length == 0" style="text-align: left">
               Aún no hay comentarios...
             </div>
-
+            
             <div v-else style="overflow-y: auto; max-height: 50vh">
               <div v-for="comentario in valorations" :key="comentario">
                 <div
@@ -626,15 +759,25 @@ onMounted(() => {
                   style="padding: 10px"
                 >
                   <div class="card-body">
+                    <div>
+                      <div class="stars">
+                        <span
+                          v-for="star in 5"
+                          :key="star"
+                          :class="{ active: star <= comentario.rating }"
+                          >★</span
+                        >
+                      </div>
+                    </div>
                     <p
                       style="font-weight: bold; text-align: left"
                       class="card-title"
                     >
                       <img
                         class="rounded-circle"
-                        :src="comentario.ratedUser.imageUri"
+                        :src="comentario.user.imageUri"
                         style="width: 3vw; height: 3vw; margin-right: 1vw"
-                      />{{ comentario.ratedUser.username }}
+                      />{{ comentario.user.username }}
                     </p>
                     <p
                       style="text-align: justify; word-wrap: break-word"
@@ -722,22 +865,43 @@ onMounted(() => {
 }
 
 .likes {
-    display: inline-flex;
+  display: inline-flex;
 }
 
 .boton {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-left: 1%; 
-    background-color:#28426B;
-    border-radius: 10px;
-    width: 27%;
-    height: 5vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: 1%;
+  background-color: #28426b;
+  border-radius: 10px;
+  width: 27%;
+  height: 5vh;
 }
 
 .boton strong {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
+
+.stars-input {
+  cursor: pointer;
+}
+
+.stars-input span {
+  color: #ccc;
+}
+
+.stars-input span.active {
+  color: gold;
+}
+
+.stars span {
+  color: #ccc;
+}
+
+.stars span.active {
+  color: gold;
+}
+
 </style>
