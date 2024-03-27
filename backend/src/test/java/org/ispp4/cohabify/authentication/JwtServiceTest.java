@@ -37,7 +37,17 @@ public class JwtServiceTest {
         // Generate a valid token for testing
         List<String> authorities = new ArrayList<String>();
         authorities.add("User");
-        user =  new User("test", "test", false, "666777666", "test@gmail.com", null, "descripcion test", Plan.BASIC, Gender.FEMENINO, null, true, authorities, null);
+        user = new User();
+        user.setUsername("test");
+        user.setPassword("test");
+        user.setIsOwner(false);
+        user.setPhone("666777666");
+        user.setEmail("test@gmail.com");
+        user.setDescription("descripcion test");
+        user.setPlan(Plan.BASIC);
+        user.setGender(Gender.FEMENINO);
+        user.setAuthorities(authorities);
+        user.setIsVerified(true);
         jwtService.jwtExpirationMs = 1000000L;
         validToken = jwtService.generateToken(user);
 

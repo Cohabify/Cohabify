@@ -34,7 +34,7 @@ public class UserServiceTest {
 
     @Test
     void shouldSaveUser(){
-        User user = new User("test", "test", null, null, null, null, null, null, null, null, null, null, null);
+        User user = new User();
         User savedUser = userService.save(user);
         assertNotNull(savedUser);
         userService.deleteById(savedUser.getId());
@@ -51,8 +51,9 @@ public class UserServiceTest {
 
     @Test
     void shouldFindByName(){
-        User user = new User("test", "test", null, null, null, null, null, null, null, null, null, null, null);
-        userService.save(user);
+        User user = new User();
+        user.setUsername("test");
+        user = userService.save(user);
         User foundUser = userService.getUserByUsername("test");
         assertNotNull(foundUser);
         userService.deleteById(user.getId());
@@ -60,8 +61,10 @@ public class UserServiceTest {
 
     @Test
     void shouldFindByNameAndTlf(){
-        User user = new User("test", "test", null, "666666666", null, null, null, null, null, null, null, null, null);
-        userService.save(user);
+        User user = new User();
+        user.setUsername("test");
+        user.setPhone("666666666");
+        user = userService.save(user);
         User foundUser = userService.getUserByUsernameAndPhone("test", "666666666");
         assertNotNull(foundUser);
         userService.deleteById(user.getId());
@@ -69,8 +72,10 @@ public class UserServiceTest {
 
     @Test
     void shouldFindByOwner(){
-        User user = new User("test", "test", true, "666666666", null, null, null, null, null, null, null, null, null);
-        userService.save(user);
+        User user = new User();
+        user.setUsername("test");
+        user.setIsOwner(true);
+        user = userService.save(user);
         List<User> foundUsers = userService.findByIsOwner(true);
         Boolean isOwner = true;
         for(User u: foundUsers){
@@ -79,8 +84,10 @@ public class UserServiceTest {
         assertTrue(isOwner);
         userService.deleteById(user.getId());
 
-        User user2 = new User("test", "test", false, "666666666", null, null, null, null, null, null, null, null, null);
-        userService.save(user2);
+        User user2 = new User();
+        user2.setUsername("test2");
+        user2.setIsOwner(false);
+        user2 = userService.save(user2);
         foundUsers = userService.findByIsOwner(false);
         isOwner = false;
         for(User u: foundUsers){
